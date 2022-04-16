@@ -1,98 +1,127 @@
 import {
-  BigInt,
-  JSONValue,
-  Value,
-  log,
-  json,
-  JSONValueKind,
-  ByteArray,
-  Bytes,
+	BigInt,
+	JSONValue,
+	Value,
+	log,
+	json,
+	JSONValueKind,
+	ByteArray,
+	Bytes,
+	ipfs,
 } from "@graphprotocol/graph-ts";
 import { PostCreated } from "../generated/PublishingLogic/PublishingLogic";
-import { PublicationEntity, MetadataEntity } from "../generated/schema";
+import { PublicationEntity } from "../generated/schema";
 
 export function handlePublication(event: PostCreated): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  // let entity = LensHub.bind(event.transaction.from.toHex())
-  let entity = PublicationEntity.load(event.params.pubId.toHex());
+	// Entities can be loaded from the store using a string ID; this ID
+	// needs to be unique across all entities of the same type
+	// let entity = LensHub.bind(event.transaction.from.toHex())
+  let pubId = event.params.pubId.toHexString();
+  if (pubId.length % 2 !== 0) {
+    pubId = "0x0" + pubId.slice(2);
+  }
+  let profileId = event.params.profileId.toHexString();
+  if (profileId.length % 2 !== 0) {
+    profileId = "0x0" + profileId.slice(2);
+  }
+  let uniqueEntityId = `${pubId}-${profileId}`;
+	let entity = PublicationEntity.load(uniqueEntityId);
 
-  if (!entity) {
-    entity = new PublicationEntity(event.params.pubId.toHex());
-  }
+	if (!entity) {
+		entity = new PublicationEntity(uniqueEntityId);
+	}
 
-  entity.profileId = event.params.profileId.toHex();
-  entity.pubId = event.params.pubId.toHex();
-  entity.contentURI = event.params.contentURI.toString();
-  entity.timestamp = event.params.timestamp.toString();
-  const contentURI = event.params.contentURI.toString();
+	entity.profileId = profileId;
+  log.info('$$$$$$: ProfileID: {}', [profileId]);
+	entity.pubId = pubId;
+  log.info('$$$$$$: pubId: {}', [pubId]);
+	entity.contentURI = event.params.contentURI.toString();
+	entity.timestamp = event.params.timestamp.toString();
+	let contentURI = event.params.contentURI;
 
-  // if (
-  //   contentURI.includes('"traitType":"Genre"') &&
-  //   contentURI.includes('"traitType":"Beats Per Minute"') &&
-  //   contentURI.includes('"traitType":"Key Scale"') &&
-  //   contentURI.includes('"traitType":"Beat Type"')
-  // ) {
-  //   entity.save();
-  // }
+	// if (
+	//   contentURI.includes('"traitType":"Genre"') &&
+	//   contentURI.includes('"traitType":"Beats Per Minute"') &&
+	//   contentURI.includes('"traitType":"Key Scale"') &&
+	//   contentURI.includes('"traitType":"Beat Type"')
+	// ) {
+	//   entity.save();
+	// }
 
-  const data = event.params.contentURI.toString();
-  log.info("Hello 1 ************* {}", [data]);
-  if (!data) return;
-  const value = json.try_fromString(data);
-  log.info("Hello a ************{}", [typeof value]);
-  if (!value) {
+	if (!contentURI) return;
+	if (!contentURI.includes("moralis")) {
+		return;
+	}
+	const ipfsHash = contentURI.slice(contentURI.lastIndexOf("ipfs") + 5);
+	let ipfsData = ipfs.cat(ipfsHash);
+	if (ipfsData === null) {
+		return;
+	}
+	let data = json.fromBytes(ipfsData as Bytes).toObject();
+	if (data === null) {
+		return;
+	}
+	let metadataId = jsonToString(data.get("metadata_id"));
+	if (!metadataId) {
+		return;
+	}
+  let name = jsonToString(data.get("name"));
+	let attributes = jsonToArray(data.get("attributes"));
+  if (attributes.length < 6) {
     return;
   }
-  if (!value.isOk) {
+  let media = jsonToArray(data.get("media"));
+  let audioData = media[0].toObject();
+  let audioURI = jsonToString(audioData.get("item"));
+  let thumbnailData = media[1].toObject();
+  let thumbnailURI = jsonToString(thumbnailData.get("item"));
+  let genre = attributes[0].toObject();
+  let genreValue = jsonToString(genre.get("value"));
+  log.info("$$$$: genre: {}" ,[genreValue]);
+  let bpm = attributes[1].toObject();
+  let bpmValue = jsonToBigInt(bpm.get("value"));
+  log.info("$$$$: bpm: {}" ,[`${bpmValue}`]);
+  let keyScale = attributes[2].toObject();
+  let keyScaleValue = jsonToString(keyScale.get("value"));
+  log.info("$$$$: keyScale: {}" ,[keyScaleValue]);
+  let beatType = attributes[3].toObject();
+  let beatTypeValue = jsonToString(beatType.get("value"));
+  log.info("$$$$: beatType: {}" ,[beatTypeValue]);
+  let licenseType = attributes[4].toObject();
+  let licenseTypeValue = jsonToString(licenseType.get("value"));
+  log.info("$$$$: licenseType: {}" ,[licenseTypeValue]);
+  let priceType = attributes[5].toObject();
+  let priceTypeValue = jsonToString(priceType.get("value"));
+  if (!genreValue && !bpmValue && !keyScaleValue && !beatTypeValue && !licenseTypeValue && !priceTypeValue) {
     return;
   }
-  log.info("Hello 2 *************", []);
-  if (value.value.kind !== JSONValueKind.OBJECT) {
-    return;
-  }
-  log.info("Hello 3 *************", []);
-  let parsedObj = value.value.toObject();
-  if (!parsedObj) {
-    log.info("Hello 4 ************", []);
-    return;
-  }
-  const metadataId = parsedObj.get("metadata_id");
-  if (!metadataId) {
-    log.info("Unable to get metadata ID.", []);
-    return;
-  }
-  const attributes = parsedObj.get("attributes");
-  if (!attributes) {
-    log.info("Unable to get attributes.", []);
-    return;
-  }
-  const attributeArray = attributes.toArray();
-  const genre = attributeArray[0].toString();
-  const bpm = attributeArray[1].toI64();
-  const keyScale = attributeArray[2].toString();
-  const type = attributeArray[3].toString();
-  if (!genre) {
-    log.info("Unable to get genre.", []);
-    return;
-  }
-  if (!bpm) {
-    log.info("Unable to get bpm.", []);
-    return;
-  }
-  if (!keyScale) {
-    log.info("Unable to get keyscale.", []);
-    return;
-  }
-  if (!type) {
-    log.info("Unable to get type.", []);
-    return;
-  }
+  entity.genre = genreValue;
+  entity.bpm = bpmValue;
+  entity.keyScale = keyScaleValue;
+  entity.beatType = beatTypeValue;
+  entity.licenseType = licenseTypeValue;
+  entity.price = priceTypeValue;
+  entity.name = name;
+  entity.audioURI = audioURI;
+  entity.thumbnailURI = thumbnailURI;
+  entity.save();
+}
 
-  let metadataEntity = MetadataEntity.load(metadataId.toString());
-  if (!metadataEntity) {
-    metadataEntity = new MetadataEntity(metadataId.toString());
+export function jsonToString(val: JSONValue | null): string {
+	if (val !== null && val.kind === JSONValueKind.STRING) {
+		return val.toString();
+	}
+	return "";
+}
+export function jsonToBigInt(val: JSONValue | null): BigInt {
+	if (val !== null && val.kind === JSONValueKind.NUMBER) {
+		return BigInt.fromI64(val.toI64());
+	}
+	return BigInt.fromI64(0);
+}
+export function jsonToArray(val: JSONValue | null): Array<JSONValue> {
+  if (val !== null && val.kind === JSONValueKind.ARRAY) {
+    return val.toArray();
   }
-  metadataEntity.save();
-  entity.metadata = metadataId.toString();
+  return [];
 }

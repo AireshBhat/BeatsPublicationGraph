@@ -11,79 +11,6 @@ import {
   BigDecimal
 } from "@graphprotocol/graph-ts";
 
-export class MetadataEntity extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
-
-    this.set("bpm", Value.fromI32(0));
-    this.set("genre", Value.fromString(""));
-    this.set("keyScale", Value.fromString(""));
-    this.set("type", Value.fromString(""));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save MetadataEntity entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.STRING,
-        `Entities of type MetadataEntity must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("MetadataEntity", id.toString(), this);
-    }
-  }
-
-  static load(id: string): MetadataEntity | null {
-    return changetype<MetadataEntity | null>(store.get("MetadataEntity", id));
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    return value!.toString();
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
-  get bpm(): i32 {
-    let value = this.get("bpm");
-    return value!.toI32();
-  }
-
-  set bpm(value: i32) {
-    this.set("bpm", Value.fromI32(value));
-  }
-
-  get genre(): string {
-    let value = this.get("genre");
-    return value!.toString();
-  }
-
-  set genre(value: string) {
-    this.set("genre", Value.fromString(value));
-  }
-
-  get keyScale(): string {
-    let value = this.get("keyScale");
-    return value!.toString();
-  }
-
-  set keyScale(value: string) {
-    this.set("keyScale", Value.fromString(value));
-  }
-
-  get type(): string {
-    let value = this.get("type");
-    return value!.toString();
-  }
-
-  set type(value: string) {
-    this.set("type", Value.fromString(value));
-  }
-}
-
 export class PublicationEntity extends Entity {
   constructor(id: string) {
     super();
@@ -91,9 +18,17 @@ export class PublicationEntity extends Entity {
 
     this.set("profileId", Value.fromString(""));
     this.set("pubId", Value.fromString(""));
+    this.set("name", Value.fromString(""));
     this.set("contentURI", Value.fromString(""));
+    this.set("bpm", Value.fromBigInt(BigInt.zero()));
+    this.set("genre", Value.fromString(""));
+    this.set("keyScale", Value.fromString(""));
+    this.set("beatType", Value.fromString(""));
+    this.set("licenseType", Value.fromString(""));
     this.set("timestamp", Value.fromString(""));
-    this.set("metadata", Value.fromString(""));
+    this.set("audioURI", Value.fromString(""));
+    this.set("thumbnailURI", Value.fromString(""));
+    this.set("price", Value.fromString(""));
   }
 
   save(): void {
@@ -141,6 +76,15 @@ export class PublicationEntity extends Entity {
     this.set("pubId", Value.fromString(value));
   }
 
+  get name(): string {
+    let value = this.get("name");
+    return value!.toString();
+  }
+
+  set name(value: string) {
+    this.set("name", Value.fromString(value));
+  }
+
   get contentURI(): string {
     let value = this.get("contentURI");
     return value!.toString();
@@ -148,6 +92,51 @@ export class PublicationEntity extends Entity {
 
   set contentURI(value: string) {
     this.set("contentURI", Value.fromString(value));
+  }
+
+  get bpm(): BigInt {
+    let value = this.get("bpm");
+    return value!.toBigInt();
+  }
+
+  set bpm(value: BigInt) {
+    this.set("bpm", Value.fromBigInt(value));
+  }
+
+  get genre(): string {
+    let value = this.get("genre");
+    return value!.toString();
+  }
+
+  set genre(value: string) {
+    this.set("genre", Value.fromString(value));
+  }
+
+  get keyScale(): string {
+    let value = this.get("keyScale");
+    return value!.toString();
+  }
+
+  set keyScale(value: string) {
+    this.set("keyScale", Value.fromString(value));
+  }
+
+  get beatType(): string {
+    let value = this.get("beatType");
+    return value!.toString();
+  }
+
+  set beatType(value: string) {
+    this.set("beatType", Value.fromString(value));
+  }
+
+  get licenseType(): string {
+    let value = this.get("licenseType");
+    return value!.toString();
+  }
+
+  set licenseType(value: string) {
+    this.set("licenseType", Value.fromString(value));
   }
 
   get timestamp(): string {
@@ -159,12 +148,30 @@ export class PublicationEntity extends Entity {
     this.set("timestamp", Value.fromString(value));
   }
 
-  get metadata(): string {
-    let value = this.get("metadata");
+  get audioURI(): string {
+    let value = this.get("audioURI");
     return value!.toString();
   }
 
-  set metadata(value: string) {
-    this.set("metadata", Value.fromString(value));
+  set audioURI(value: string) {
+    this.set("audioURI", Value.fromString(value));
+  }
+
+  get thumbnailURI(): string {
+    let value = this.get("thumbnailURI");
+    return value!.toString();
+  }
+
+  set thumbnailURI(value: string) {
+    this.set("thumbnailURI", Value.fromString(value));
+  }
+
+  get price(): string {
+    let value = this.get("price");
+    return value!.toString();
+  }
+
+  set price(value: string) {
+    this.set("price", Value.fromString(value));
   }
 }

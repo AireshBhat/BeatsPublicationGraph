@@ -1,16 +1,24 @@
-type MetadataEntity @entity {
-  id: ID!
-  bpm: Int!
-  genre: String!
-  keyScale: String!
-  type: String!
-}
+type _Schema_
+  @fulltext(
+    name: "publicationSearch"
+    language: en
+    algorithm: rank
+    include: [{ entity: "PublicationEntity", fields: [{ name: "name" }, { name: "genre" }, { name: "keyScale" }, { name: "beatType" }, { name: "licenseType" }] }]
+  )
 
 type PublicationEntity @entity {
   id: ID!
   profileId: String!
   pubId: String!
+  name: String!
   contentURI: String!
+  bpm: BigInt!
+  genre: String!
+  keyScale: String!
+  beatType: String!
+  licenseType: String!
   timestamp: String!
-  metadata: MetadataEntity!
+  audioURI: String!
+  thumbnailURI: String!
+  price: String!
 }
