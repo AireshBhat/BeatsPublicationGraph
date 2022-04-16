@@ -24,7 +24,7 @@ export function handlePublication(event: PostCreated): void {
   if (profileId.length % 2 !== 0) {
     profileId = "0x0" + profileId.slice(2);
   }
-  let uniqueEntityId = `${pubId}-${profileId}`;
+  let uniqueEntityId = `${profileId}-${pubId}`;
 	let entity = PublicationEntity.load(uniqueEntityId);
 
 	if (!entity) {
