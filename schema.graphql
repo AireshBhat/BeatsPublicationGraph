@@ -3,7 +3,7 @@ type _Schema_
     name: "publicationSearch"
     language: en
     algorithm: rank
-    include: [{ entity: "PublicationEntity", fields: [{ name: "name" }, { name: "genre" }, { name: "keyScale" }, { name: "beatType" }, { name: "licenseType" }] }]
+    include: [{ entity: "PublicationEntity", fields: [{ name: "name" }, { name: "genre" }, { name: "keyScale" }, { name: "beatType" }, { name: "licenseType" }, { name: "bpm" }] }]
   )
 
 type PublicationEntity @entity {
@@ -12,7 +12,7 @@ type PublicationEntity @entity {
   pubId: String!
   name: String!
   contentURI: String!
-  bpm: BigInt!
+  bpm: String!
   genre: String!
   keyScale: String!
   beatType: String!

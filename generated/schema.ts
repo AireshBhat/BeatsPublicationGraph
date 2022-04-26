@@ -20,7 +20,7 @@ export class PublicationEntity extends Entity {
     this.set("pubId", Value.fromString(""));
     this.set("name", Value.fromString(""));
     this.set("contentURI", Value.fromString(""));
-    this.set("bpm", Value.fromBigInt(BigInt.zero()));
+    this.set("bpm", Value.fromString(""));
     this.set("genre", Value.fromString(""));
     this.set("keyScale", Value.fromString(""));
     this.set("beatType", Value.fromString(""));
@@ -94,13 +94,13 @@ export class PublicationEntity extends Entity {
     this.set("contentURI", Value.fromString(value));
   }
 
-  get bpm(): BigInt {
+  get bpm(): string {
     let value = this.get("bpm");
-    return value!.toBigInt();
+    return value!.toString();
   }
 
-  set bpm(value: BigInt) {
-    this.set("bpm", Value.fromBigInt(value));
+  set bpm(value: string) {
+    this.set("bpm", Value.fromString(value));
   }
 
   get genre(): string {
