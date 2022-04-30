@@ -1,13 +1,12 @@
 import {
 	BigInt,
 	JSONValue,
-	Value,
 	log,
 	json,
 	JSONValueKind,
-	ByteArray,
 	Bytes,
 	ipfs,
+	BigDecimal,
 } from "@graphprotocol/graph-ts";
 import { PostCreated } from "../generated/PublishingLogic/PublishingLogic";
 import { PublicationEntity } from "../generated/schema";
@@ -38,6 +37,7 @@ export function handlePublication(event: PostCreated): void {
 	entity.contentURI = event.params.contentURI.toString();
 	entity.timestamp = event.params.timestamp.toString();
 	let contentURI = event.params.contentURI;
+	log.info("$$$$$$: contentURI: {}", [contentURI]);
 
 	// if (
 	//   contentURI.includes('"traitType":"Genre"') &&
@@ -49,10 +49,8 @@ export function handlePublication(event: PostCreated): void {
 	// }
 
 	if (!contentURI) return;
-	if (!contentURI.includes("moralis")) {
-		return;
-	}
-	const ipfsHash = contentURI.slice(contentURI.lastIndexOf("ipfs") + 5);
+	const ipfsHash = contentURI.slice(contentURI.lastIndexOf("ipfs") + 7);
+	log.info("$$$$$$: ipfsHash: {}", [ipfsHash]);
 	let ipfsData = ipfs.cat(ipfsHash);
 	if (ipfsData === null) {
 		return;
@@ -79,7 +77,7 @@ export function handlePublication(event: PostCreated): void {
 	let genreValue = jsonToString(genre.get("value"));
 	log.info("$$$$: genre: {}", [genreValue]);
 	let bpm = attributes[1].toObject();
-	let bpmValue = jsonToBigInt(bpm.get("value"));
+	let bpmValue = jsonToDecimal(bpm.get("value"));
 	log.info("$$$$: bpm: {}", [`${bpmValue}`]);
 	let keyScale = attributes[2].toObject();
 	let keyScaleValue = jsonToString(keyScale.get("value"));
@@ -91,7 +89,8 @@ export function handlePublication(event: PostCreated): void {
 	let licenseTypeValue = jsonToString(licenseType.get("value"));
 	log.info("$$$$: licenseType: {}", [licenseTypeValue]);
 	let priceType = attributes[5].toObject();
-	let priceTypeValue = jsonToString(priceType.get("value"));
+	let priceTypeValue = jsonToDecimal(priceType.get("value"));
+	log.info("$$$$: priceValue: {}", [`${priceTypeValue}`]);
 	if (
 		!genreValue &&
 		!bpmValue &&
@@ -107,7 +106,7 @@ export function handlePublication(event: PostCreated): void {
 	entity.keyScale = keyScaleValue;
 	entity.beatType = beatTypeValue;
 	entity.licenseType = licenseTypeValue;
-	entity.price = priceTypeValue;
+	entity.price = `${priceTypeValue}`;
 	entity.name = name;
 	entity.audioURI = audioURI;
 	entity.thumbnailURI = thumbnailURI;
@@ -126,6 +125,14 @@ export function jsonToBigInt(val: JSONValue | null): BigInt {
 	}
 	return BigInt.fromI64(0);
 }
+
+export function jsonToDecimal(val: JSONValue | null): number {
+	if (val !== null && val.kind === JSONValueKind.NUMBER) {
+		return val.toF64();
+	}
+	return 0;
+}
+
 export function jsonToArray(val: JSONValue | null): Array<JSONValue> {
 	if (val !== null && val.kind === JSONValueKind.ARRAY) {
 		return val.toArray();

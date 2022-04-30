@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0x4BF0c7AD32Fd2d32089790a54485e23f5C7736C0"
       abi: PublishingLogic
-      startBlock: 25940384
+      startBlock: 26143333
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
