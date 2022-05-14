@@ -6,7 +6,6 @@ import {
 	JSONValueKind,
 	Bytes,
 	ipfs,
-	BigDecimal,
 } from "@graphprotocol/graph-ts";
 import { PostCreated } from "../generated/PublishingLogic/PublishingLogic";
 import { PublicationEntity } from "../generated/schema";
@@ -55,19 +54,23 @@ export function handlePublication(event: PostCreated): void {
 	if (ipfsData === null) {
 		return;
 	}
+
 	let data = json.fromBytes(ipfsData as Bytes).toObject();
 	if (data === null) {
 		return;
 	}
+
 	let metadataId = jsonToString(data.get("metadata_id"));
 	if (!metadataId) {
 		return;
 	}
+
 	let name = jsonToString(data.get("name"));
 	let attributes = jsonToArray(data.get("attributes"));
 	if (attributes.length < 6) {
 		return;
 	}
+
 	let media = jsonToArray(data.get("media"));
 	let audioData = media[0].toObject();
 	let audioURI = jsonToString(audioData.get("item"));
@@ -76,21 +79,27 @@ export function handlePublication(event: PostCreated): void {
 	let genre = attributes[0].toObject();
 	let genreValue = jsonToString(genre.get("value"));
 	log.info("$$$$: genre: {}", [genreValue]);
+
 	let bpm = attributes[1].toObject();
 	let bpmValue = jsonToDecimal(bpm.get("value"));
 	log.info("$$$$: bpm: {}", [`${bpmValue}`]);
+
 	let keyScale = attributes[2].toObject();
 	let keyScaleValue = jsonToString(keyScale.get("value"));
 	log.info("$$$$: keyScale: {}", [keyScaleValue]);
+
 	let beatType = attributes[3].toObject();
 	let beatTypeValue = jsonToString(beatType.get("value"));
 	log.info("$$$$: beatType: {}", [beatTypeValue]);
+
 	let licenseType = attributes[4].toObject();
 	let licenseTypeValue = jsonToString(licenseType.get("value"));
 	log.info("$$$$: licenseType: {}", [licenseTypeValue]);
+
 	let priceType = attributes[5].toObject();
 	let priceTypeValue = jsonToDecimal(priceType.get("value"));
 	log.info("$$$$: priceValue: {}", [`${priceTypeValue}`]);
+
 	if (
 		!genreValue &&
 		!bpmValue &&
@@ -119,6 +128,7 @@ export function jsonToString(val: JSONValue | null): string {
 	}
 	return "";
 }
+
 export function jsonToBigInt(val: JSONValue | null): BigInt {
 	if (val !== null && val.kind === JSONValueKind.NUMBER) {
 		return BigInt.fromI64(val.toI64());
